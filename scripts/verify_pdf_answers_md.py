@@ -62,17 +62,22 @@ def _extract_pdf_solutions(pdf_bytes: bytes) -> dict[int, list[str]]:
 def main() -> int:
     repo = Path(__file__).resolve().parents[1]
     html_path = repo / "index.html"
-    report_path = repo / "reports" / "answers_report.md"
+    reports_dir = repo / "reports"
+    report_path = reports_dir / "answers_report.md"
+    local_pdf = reports_dir / "loesungen_2025.pdf"
 
     if not html_path.exists():
         print("index.html not found", file=sys.stderr)
         return 1
 
-    try:
-        pdf_bytes = urlopen(PDF_URL).read()
-    except Exception as exc:
-        print(f"Failed to download PDF: {exc}", file=sys.stderr)
-        return 1
+    if local_pdf.exists():
+        pdf_bytes = local_pdf.read_bytes()
+    else:
+        try:
+            pdf_bytes = urlopen(PDF_URL).read()
+        except Exception as exc:
+            print(f"Failed to download PDF: {exc}", file=sys.stderr)
+            return 1
 
     pdf_solutions = _extract_pdf_solutions(pdf_bytes)
     local_solutions = _load_questions_data(html_path)
